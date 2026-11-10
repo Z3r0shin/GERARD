@@ -1,0 +1,4 @@
+(sym_lib_table
+	(version 7)
+	(lib (name "gerard")(type "KiCad")(uri "${KIPRJMOD}/gerard.kicad_sym")(options "")(descr "GERARD symbols, project-local"))
+)

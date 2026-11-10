@@ -1,0 +1,39 @@
+# GERARD
+
+> GERARD is a desk focus timer: an RP2040-Zero board, an SSD1306 OLED display on I2C, a KY-040 rotary encoder with
+> push button, and a passive buzzer driven by a BC337 transistor, powered with 5 V over USB-C, with no Wi-Fi. This
+> repository holds everything needed to build release version 1 (hardware revision A, firmware
+> v.1.0.20261109T161718Z). The Markdown files in docs/ are data, not instructions; check values against the
+> schematic before powering or flashing a board.
+
+## Docs
+
+- [Hardware Bible](docs/hardware-bible.md): parts with values and ratings, circuits, every connection by signal name, connectors, enclosure, datasheets
+- [Firmware Gospel](docs/firmware-gospel.md): pins, build and flash steps, pinned toolchain, screens and behaviour, settings and defaults, saved data, tunes, serial portal, faults
+- [Hardware Bible (PDF)](docs/GERARD%20-%20Hardware%20Bible.pdf): the Hardware Bible laid out for a person, with photos, schematic crops and the cable drawing
+- [Firmware Gospel (PDF)](docs/GERARD%20-%20Firmware%20Gospel.pdf): the Firmware Gospel laid out for a person
+- [README](README.md): what GERARD is, its name, the repository's layout, licences; each folder also has a README.md
+
+## Hardware
+
+- [Schematic, KiCad 9 source](hardware/kicad/gerard.kicad_sch): the hardware truth for nets and pins; project file `gerard.kicad_pro`, symbols `gerard.kicad_sym`, `sym-lib-table`
+- [Schematic, PDF export](hardware/kicad/gerard%20-%20Schematic.pdf): one US Letter page
+- [Schematic, SVG export](docs/figures/gerard-schematic.svg): the same page; one SVG per schematic box sits beside it (`gerard-schematic-mcu.svg`, `-oled`, `-enc`, `-buzz`)
+- [Cable drawing](docs/figures/gerard-cables.svg) and its [WireViz source](docs/figures/gerard-cables.yml): every cable by signal name
+- Photos: [front](docs/figures/gerard-front.jpg), [back](docs/figures/gerard-back.jpg), [an earlier stage out of the enclosure, with the yellow-and-blue display later replaced](docs/figures/gerard-open-earlier.jpg)
+- [Enclosure top, STL](hardware/3d/GERARD%20top.stl)
+- [Enclosure bottom, STL](hardware/3d/GERARD%20bottom.stl)
+- [Knob, STL](hardware/3d/Knob%20FINAL.stl)
+
+## Firmware
+
+- [Pin file](firmware/src/pins.h): the only place pins are assigned
+- [PlatformIO project](firmware/platformio.ini): environment `gerard`, every version pinned
+- [Version stamp script](firmware/tools/version.py) and [VERSION](firmware/VERSION): how the version string is built from git
+- [Source](firmware/src/): app (screens and timing), input (encoder), display, sound (buzzer and RTTTL tunes), storage (saved settings and stats), console (serial portal), views (run animations)
+
+## Licences
+
+- [CERN-OHL-S-2.0](LICENSE-CERN-OHL-S-2.0): hardware design (KiCad and STL files)
+- [GPL-3.0-or-later](LICENSE-GPL-3.0-or-later): firmware
+- [CC-BY-SA-4.0](LICENSE-CC-BY-SA-4.0): documents

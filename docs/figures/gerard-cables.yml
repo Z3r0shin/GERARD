@@ -1,0 +1,59 @@
+options:
+  fontname: Segoe UI
+  bgcolor: WH
+  bgcolor_node: WH
+  bgcolor_connector: WH
+  bgcolor_cable: WH
+  bgcolor_bundle: WH
+
+connectors:
+  J2:
+    type: JST XH housing, 4 ways
+    subtype: U1's end of the display cable, on header J1
+    pins: [I2C_SDA, I2C_SCL, RP_3V3, GND]
+  U2:
+    type: Display module, soldered
+    subtype: pins as printed
+    pins: [GND, VDD, SCK, SDA]
+  J6:
+    type: JST XH housing, 5 ways
+    subtype: U1's end of the encoder cable, on header J5
+    pins: [ENC_CLK, ENC_DT, ENC_SW, GND, RP_3V3]
+  U3:
+    type: KY-040 module, soldered
+    subtype: pins as printed
+    pins: [GND, "+", SW, DT, CLK]
+  J9:
+    type: USB-C socket board
+    subtype: on the enclosure
+    pins: [VCC, D-, D+, GND]
+  P1:
+    type: USB-C plug board
+    subtype: in U1's USB-C socket
+    pins: [VBUS, D-, D+, GND]
+
+cables:
+  Display cable:
+    wirecount: 4
+    wirelabels: [I2C_SDA, I2C_SCL, RP_3V3, GND]
+    show_wirenumbers: false
+    show_equiv: false
+  Encoder cable:
+    wirecount: 5
+    wirelabels: [ENC_CLK, ENC_DT, ENC_SW, GND, RP_3V3]
+    show_wirenumbers: false
+  USB-C extension:
+    wirecount: 4
+    wirelabels: [5VDC, USB_DM, USB_DP, GND]
+    show_wirenumbers: false
+
+connections:
+  - - J2: [I2C_SDA, I2C_SCL, RP_3V3, GND]
+    - Display cable: [1-4]
+    - U2: [SDA, SCK, VDD, GND]
+  - - J6: [ENC_CLK, ENC_DT, ENC_SW, GND, RP_3V3]
+    - Encoder cable: [1-5]
+    - U3: [CLK, DT, SW, GND, "+"]
+  - - J9: [VCC, D-, D+, GND]
+    - USB-C extension: [1-4]
+    - P1: [VBUS, D-, D+, GND]
