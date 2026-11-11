@@ -16,7 +16,7 @@ after a day's work and see the focus number went brr.
 
 ## The device
 
-I like names starting with G, and I needed a name for this device. Since its in the spirit of IGOR, the
+I like names starting with G, and I needed a name for this device. Since its in the spirit of [IGOR](https://github.com/UrbanCircles/igor), the
 focus timer that inspired it, I decided on a butler-esque name. So it became...
 G.E.R.A.R.D. : **Gentleman's Efficient Reminder of Assiduity, Rehydration and Discipline**.
 
@@ -96,7 +96,7 @@ Found an error, or stuck on a step? Open an issue in this repository's [GitHub i
 
 ## Credits
 
-GERARD is inspired by IGOR, a focus timer by UrbanCircles (`github.com/UrbanCircles/igor`).
+GERARD is inspired by [IGOR](https://github.com/UrbanCircles/igor), a focus timer by UrbanCircles.
 
 ## Licence
 
