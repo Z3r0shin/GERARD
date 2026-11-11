@@ -1,39 +1,44 @@
-# GERARD
+# G.E.R.A.R.D.
 
-A desk focus timer that counts your focus time and keeps reminding you to take breaks, drink and stretch.
+Gentleman's Efficient Reminder of Assiduity, Rehydration and Discipline: a desk focus timer that counts your focus time and keeps reminding you to take breaks, drink and stretch.
 
 ![GERARD seen from the front: a black 3D-printed enclosure, a small white OLED display showing START, and a large knob on top.](docs/figures/gerard-front.jpg)
 
 GERARD counts focus time up, or counts a set time down, on a small OLED display worked with one knob. After 30 minutes
-of running time it asks for a break, and keeps asking every minute until you answer. It sits on the desk of the
-person it keeps on track.
+of running time (by default, but that can be changed in the serial portal) it asks for a break so you can prevent having
+back, eyes and brain problems. Like, seriously, stop working all crouched over your keyboard all day non-stop drinking
+back-to-back energy drinks in a dark room. Get up, stretch a bit, look at something (ideally outside) at least 20 feet 
+away for at least 2 minutes, and drink water, doofus.
+GERARD sits on the desk and also keeps track of the time you've spent in focus. Bit of dopamine hit when you look at it
+after a day's work and see the focus number went brr.
 
 **Release version 1** (2026-11-09) · hardware revision A · firmware `v.1.0.20261109T161718Z`
 
-## The name
+## The device
 
-All of the author's pets have names starting with G, and GERARD needed a butler's name, in the spirit of IGOR, the
-focus timer that inspired it. The name is a French acronym first: *Gestionnaire Efficace Rappelant Assiduité,
-Réhydratation et Discipline*. In English: **Gentleman's Efficient Reminder of Assiduity, Rehydration and Discipline**.
+I like names starting with G, and I needed a name for this device. Since its in the spirit of IGOR, the
+focus timer that inspired it, I decided on a butler-esque name. So it became...
+G.E.R.A.R.D. : **Gentleman's Efficient Reminder of Assiduity, Rehydration and Discipline**.
+
+Also has nice animations, just for fun! Most are changing according to the amount of time between breaks.
 
 ## Specifications
 
-- **Microcontroller:** RP2040-Zero board (RP2040).
-- **Power:** 5 V DC through a USB-C socket on the enclosure.
+- **Microcontroller:** RP2040-Zero.
+- **Power:** USB-C connector.
 - **Display:** white SSD1306 OLED module on I2C, 128 x 64.
-- **Input:** KY-040 rotary encoder; turn, press, or hold.
-- **Sound:** passive magnetic buzzer, switched by a BC337 transistor.
-- **Build:** through-hole parts on one perfboard, JST XH cables to the display and the encoder.
-- **Enclosure:** two 3D-printed parts and a knob, PLA.
+- **Input:** rotary encoder.
+- **Sound:** passive magnetic buzzer.
+- **Enclosure:** two 3D-printed parts and a knob.
 - **Firmware:** focus count-up, countdown from 1 to 240 minutes, break prompts, nine run animations, and a USB serial
-  portal for settings, tunes and a hardware check.
+  portal for settings and buzzer tunes.
 
 ## What is in this repository
 
 | Path | What is there | Open first |
 |---|---|---|
-| [`hardware/`](hardware/) | The schematic (KiCad 9 and PDF) and the enclosure and knob (STL) | [`gerard - Schematic.pdf`](hardware/kicad/gerard%20-%20Schematic.pdf) |
-| [`firmware/`](firmware/) | The firmware source, a PlatformIO project | [`src/pins.h`](firmware/src/pins.h) |
+| [`hardware/`](hardware/) | The schematic (KiCad and PDF), the enclosure and knob (STLs) | [`gerard - Schematic.pdf`](hardware/kicad/gerard%20-%20Schematic.pdf) |
+| [`firmware/`](firmware/) | The firmware source, using PlatformIO | [`src/pins.h`](firmware/src/pins.h) |
 | [`docs/`](docs/) | The Hardware Bible and the Firmware Gospel, as PDF and Markdown, and their figures | [`GERARD - Hardware Bible.pdf`](docs/GERARD%20-%20Hardware%20Bible.pdf) |
 | [`llms.txt`](llms.txt) | A map of this repository for an LLM | |
 | `LICENSE-*` | The three licences, also in [`LICENSES/`](LICENSES/) | |
@@ -63,7 +68,7 @@ The [Firmware Gospel (PDF)](docs/GERARD%20-%20Firmware%20Gospel.pdf), "Build and
 
 ## Documentation
 
-| Book | For a person | For an LLM |
+| Book | For a human | For an LLM (because we're vibin') |
 |---|---|---|
 | Hardware Bible | [`GERARD - Hardware Bible.pdf`](docs/GERARD%20-%20Hardware%20Bible.pdf) | [`hardware-bible.md`](docs/hardware-bible.md) |
 | Firmware Gospel | [`GERARD - Firmware Gospel.pdf`](docs/GERARD%20-%20Firmware%20Gospel.pdf) | [`firmware-gospel.md`](docs/firmware-gospel.md) |
@@ -75,7 +80,7 @@ An LLM agent can start from [`llms.txt`](llms.txt).
 
 ![GERARD seen from the back: the knob on top and the USB-C socket in the lower back corner.](docs/figures/gerard-back.jpg)
 
-An earlier stage, out of the enclosure, with the yellow-and-blue display that was later replaced:
+Out of the enclosure, young and spry:
 
 ![The perfboard with the RP2040-Zero and the buzzer, the encoder module, and a display module on its cable.](docs/figures/gerard-open-earlier.jpg)
 
@@ -91,8 +96,7 @@ Found an error, or stuck on a step? Open an issue in this repository's [GitHub i
 
 ## Credits
 
-GERARD is inspired by IGOR, a focus timer by UrbanCircles (`github.com/UrbanCircles/igor`). GERARD's design is its
-own and reuses no file from IGOR.
+GERARD is inspired by IGOR, a focus timer by UrbanCircles (`github.com/UrbanCircles/igor`).
 
 ## Licence
 
