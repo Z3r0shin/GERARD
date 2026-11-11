@@ -8,7 +8,7 @@ GERARD counts focus time up, or counts a set time down, on a small OLED display 
 of running time (by default, but that can be changed in the serial portal) it asks for a break so you can prevent having
 back, eyes and brain problems. Like, seriously, stop working all crouched over your keyboard all day non-stop drinking
 back-to-back energy drinks in a dark room. Get up, stretch a bit, look at something (ideally outside) at least 20 feet 
-away for at least 2 minutes, and drink water, doofus.
+away for at least 20 seconds, and drink water, doofus.
 GERARD sits on the desk and also keeps track of the time you've spent in focus. Bit of dopamine hit when you look at it
 after a day's work and see the focus number went brr.
 
