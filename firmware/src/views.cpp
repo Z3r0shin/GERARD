@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // GERARD firmware: the run views, the animations shown in place of the count during a run.
 //
-// Ported line for line from the script of the owner's mockup (gerard-run-views.html, with its
-// brief README.md, 2026-11-06), so the pixels match the mockup: the drawing helpers below are the
-// mockup's own (px rounds each coordinate to the nearest pixel, halves up, and drops pixels off the
-// screen), in double precision as in JavaScript. Every function keeps the mockup's name.
+// The drawing helpers below (px rounds each coordinate to the nearest pixel, halves up, and drops
+// pixels off the screen) work in double precision.
 //
-// The art was drawn for GERARD as mockups, at the owner's request, by Claude in a brainstorm
-// session on 2026-11-06; nothing is copied from another work. It is under the firmware's licence,
-// GPL-3.0-or-later (the owner, 2026-11-06: "3- yes").
+// The art was drawn for GERARD; nothing is copied from another work. It is under the firmware's
+// licence, GPL-3.0-or-later.
 //
 // The buffer holds rows 16 to 63 only, in the display's page layout (6 pages of 128 bytes, each
 // byte 8 rows, top row in bit 0), so a view can never touch the top line.
@@ -32,12 +29,12 @@ constexpr double MIN_MS = 60000.0;
 uint8_t vb[6 * 128];
 bool maskOn = false;  // masked(): draw only where x + y is even
 uint32_t lastUs = 0, maxUs = 0;
-long frames = 0;  // frames drawn, the mockup's frame counter (the hourglass's stream)
+long frames = 0;  // frames drawn (the hourglass's stream)
 
 inline int rnd(double v) { return (int)floor(v + 0.5); }  // JavaScript's Math.round
 inline double clamp01(double v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
 
-// ---------- 1-bit drawing, as in the mockup ----------
+// ---------- 1-bit drawing ----------
 void px(double xd, double yd) {
     int x = rnd(xd), y = rnd(yd);
     if (x < 0 || y < TOP || x >= W || y >= H) return;
@@ -438,8 +435,8 @@ double ecgWave(double ph) {
     if (ph > 0.42 && ph < 0.6) return -4 * sin((ph - 0.42) / 0.18 * PI_);
     return 0;
 }
-// The mockup writes 4 columns a frame at 10 frames a second (40 pixels a second, 25 ms of trace
-// each). Here the trace advances by the real time it was shown: one column per 25 ms. A gap of more
+// The trace advances 40 pixels a second (25 ms of trace each), by the real time it was shown:
+// one column per 25 ms. A gap of more
 // than 0.5 s (the view was hidden) counts as one frame, so the trace waits behind the count.
 void drawEcg(double p, uint32_t nowMs) {
     double beat = 60 / (72 - 12 * clamp01(p));

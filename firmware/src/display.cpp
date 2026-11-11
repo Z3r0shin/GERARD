@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // GERARD firmware: the 0.96 inch SSD1306 OLED, 128 x 64, on I2C.
 //
-// The display's I2C address is not recorded; such modules answer at 0x3C or 0x3D, so both are
+// Such modules answer at 0x3C or 0x3D, so both are
 // tried. While no display answers, the firmware keeps running and looks again every few
 // seconds, so the display can be plugged in later and a missing display is visible on the
 // serial portal.
@@ -9,22 +9,21 @@
 // Row layout: U8g2's usual SSD1306 set-up sends the "alternative" COM pin layout (command 0xDA,
 // 0x12). Some two-colour modules are wired for the sequential layout (0xDA, 0x02, U8g2's "ALT0").
 // Here the layout is a setting, sent after set-up, so it can be switched from the serial portal.
-// The default is the standard one: on the rev A display the sequential layout scrambled the
-// text (owner, 2026-11-05: "the text is all over the place").
+// The default is the standard one: on the rev A display the sequential layout scrambles the
+// text.
 //
 // Test patterns (serial portal, hardware check) light known rows, to tell a fault of the panel
 // from one of the firmware. They show at full brightness.
 //
 // Dimming: on an SSD1306 the contrast command alone barely dims the panel while the VCOMH level is
 // high. Dimmed, the screen also gets a short pre-charge and the lowest VCOMH level, which brings it
-// to about a tenth of full brightness; the same values dim the Power Protector's SSD1306 (its
-// firmware, oled.cpp; sources: github.com/thePunderWoman/SnipsControllers/pull/79,
+// to about a tenth of full brightness (sources: github.com/thePunderWoman/SnipsControllers/pull/79,
 // github.com/arendst/Tasmota/discussions/22999). Not dimmed: U8g2's own set-up values. U8g2 notes
 // that VCOMH 0 does not suit every module (its issue #116); it is used only while dimmed. The
 // display's set-up (oled.begin()) resets all three, so they are sent again after it.
 //
 // Layout of a screen: each line is placed from its font's own ascent and descent, so no font
-// can reach over the yellow band's edge or past the bottom row.
+// can reach over the top band's edge or past the bottom row.
 //
 // Fonts (U8g2), all free to redistribute:
 //   Inconsolata LGC Bold, SIL Open Font License; Logisoso, by Mathieu Gabiot, GPL-2.0 with font
@@ -49,7 +48,7 @@ U8G2_SSD1306_128X64_NONAME_F_HW_I2C oled(U8G2_R0, U8X8_PIN_NONE);
 
 constexpr uint8_t CANDIDATES[] = {0x3C, 0x3D};
 constexpr int YELLOW_ROWS = 16;  // rows 0 to 15
-constexpr int BLUE_TOP = 18;     // first row the large line may use (a 2-row margin under the yellow)
+constexpr int BLUE_TOP = 18;     // first row the large line may use (a 2-row margin under the top band)
 constexpr int LAST_ROW = 63;
 constexpr int FOOT_ROWS = 10;    // kept for the small line or the dots at the bottom
 
@@ -155,14 +154,14 @@ void drawPattern() {
 void draw(const Frame &f) {
     oled.clearBuffer();
     if (!f.off) {
-        // Yellow band: the chosen small font, or a narrower one if the text is too wide.
+        // Top band (rows 0 to 15): the chosen small font, or a narrower one if the text is too wide.
         oled.setFont(SMALL_FONTS[smallIndex].font);
         if (oled.getStrWidth(f.top) > 126) {
             oled.setFont(SMALL_FALLBACK);
         }
         drawLine(f.top, 0, YELLOW_ROWS - 1);
 
-        // Blue part: the biggest size of the chosen large font that fits both ways. The large line
+        // Lower part: the biggest size of the chosen large font that fits both ways. The large line
         // has no lower-case letters, so only its ascent must fit, plus one row: a few glyphs, such
         // as Logisoso's '?', reach one row above their font's ascent.
         bool foot = f.small[0] || f.dots;

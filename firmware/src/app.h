@@ -33,6 +33,10 @@ void setSmallFont(uint8_t index);
 // Run views switched on or off (views.h). False when the change would leave none on.
 bool setViewOn(uint8_t index, bool on);
 void setAllViewsOn();
+// Timings (timings.h): set one already checked with timings::check, or all back to their defaults;
+// each is used at once and saved. False if the value was refused or the save failed.
+bool setTiming(uint8_t id, uint16_t value);
+bool resetTimings();
 
 void clearLifetime();
 void saveNow();

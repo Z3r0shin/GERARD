@@ -8,8 +8,7 @@
 // Tunes are standard RTTTL texts (the Nokia ringtone format), editable from the serial portal:
 // octaves 4 to 7 with C4 = 262 Hz; a whole note lasts 240000 / bpm ms; a dot, after the note or
 // after the octave, adds half; two equal notes in a row are parted by 10 ms of silence.
-// The defaults sit between about 1.5 kHz and 2.7 kHz: the same kind of buzzer on the owner's
-// other build is loudest at 2200 Hz.
+// The defaults sit between about 1.5 kHz and 2.7 kHz.
 // Nothing here blocks: update() moves from note to note.
 
 #include "sound.h"

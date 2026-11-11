@@ -12,7 +12,7 @@ away for at least 20 seconds, and drink water, doofus.
 GERARD sits on the desk and also keeps track of the time you've spent in focus. Bit of dopamine hit when you look at it
 after a day's work and see the focus number went brr.
 
-**Release version 1** (2026-11-09) · hardware revision A · firmware `v.1.0.20261109T161718Z`
+**Release version 1.1** (2026-11-10) · hardware revision A · firmware `v.1.1.20261111T012239Z`
 
 ## The device
 
@@ -21,6 +21,14 @@ focus timer that inspired it, I decided on a butler-esque name. So it became...
 G.E.R.A.R.D. : **Gentleman's Efficient Reminder of Assiduity, Rehydration and Discipline**.
 
 Also has nice animations, just for fun! Most are changing according to the amount of time between breaks.
+
+| | | |
+|:---:|:---:|:---:|
+| ![Hourglass, a run view of GERARD, animated](docs/figures/gerard-view-A-hourglass.gif)<br>Hourglass | ![Plant, a run view of GERARD, animated](docs/figures/gerard-view-B-plant.gif)<br>Plant | ![Coffee pot, a run view of GERARD, animated](docs/figures/gerard-view-E-coffee-pot.gif)<br>Coffee pot |
+| ![Train, a run view of GERARD, animated](docs/figures/gerard-view-F-train.gif)<br>Train | ![Scarf, a run view of GERARD, animated](docs/figures/gerard-view-I-scarf.gif)<br>Scarf | ![Robot, a run view of GERARD, animated](docs/figures/gerard-view-J-robot.gif)<br>Robot |
+| ![Fishing, a run view of GERARD, animated](docs/figures/gerard-view-K-fishing.gif)<br>Fishing | ![Newton's cradle, a run view of GERARD, animated](docs/figures/gerard-view-N-newtons-cradle.gif)<br>Newton's cradle | ![Heartbeat, a run view of GERARD, animated](docs/figures/gerard-view-O-heartbeat.gif)<br>Heartbeat |
+
+Each one runs through a whole stretch to a break in about 10 seconds here; on GERARD it takes the full break time.
 
 ## Specifications
 

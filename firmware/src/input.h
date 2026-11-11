@@ -7,8 +7,8 @@
 enum class ButtonEvent : uint8_t {
     None,
     Down,   // the button has just gone down (for the click sound)
-    Short,  // released before LONG_PRESS_MS
-    Long,   // held for LONG_PRESS_MS (fires once, while still held)
+    Short,  // released before the hold time
+    Long,   // held for the hold time (fires once, while still held)
 };
 
 namespace input {
@@ -23,6 +23,9 @@ ButtonEvent pollButton(uint32_t now);
 
 // true: turning the knob counts the other way round from ENC_DIRECTION.
 void setReversed(bool reversed);
+
+// How long a press must be held to count as a hold ("back").
+void setHoldMs(uint32_t ms);
 
 // Raw levels, for the serial portal.
 bool clkLevel();

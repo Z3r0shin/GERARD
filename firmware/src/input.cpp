@@ -23,6 +23,7 @@ volatile uint8_t encState = 0;
 volatile int8_t encSteps = 0;
 volatile int32_t encDetents = 0;
 volatile int8_t encDirection = ENC_DIRECTION;  // flipped by the knob-direction setting
+uint32_t holdMs = 700;  // a press this long is a hold; set from the timings (timings.h)
 
 inline uint8_t readEncoder() {
     return (uint8_t)((digitalRead(PIN_ENC_CLK) ? 2 : 0) | (digitalRead(PIN_ENC_DT) ? 1 : 0));
@@ -103,12 +104,14 @@ ButtonEvent pollButton(uint32_t now) {
         longFired = false;
         return ButtonEvent::None;
     }
-    if (swStable && !longFired && now - swPressedAt >= LONG_PRESS_MS) {
+    if (swStable && !longFired && now - swPressedAt >= holdMs) {
         longFired = true;
         return ButtonEvent::Long;
     }
     return ButtonEvent::None;
 }
+
+void setHoldMs(uint32_t ms) { holdMs = ms; }
 
 void setReversed(bool reversed) { encDirection = (int8_t)(reversed ? -ENC_DIRECTION : ENC_DIRECTION); }
 

@@ -15,6 +15,7 @@
 #include "display.h"
 #include "input.h"
 #include "sound.h"
+#include "timings.h"
 #include "views.h"
 
 namespace {
@@ -51,7 +52,7 @@ const char *const DOWN_PAUSE[] = {"RESUME", "STOP"};
 constexpr int DOWN_PAUSE_COUNT = 2;
 const char *const CONFIRM[] = {"SURE?", "NO!"};
 constexpr int CONFIRM_NO = 1;
-const char *const BREAK_TEXTS[] = {"BREAK!", "3 SIPS!", "BREAK!", "STRETCH!", "BREAK!", "20-20-20!"};
+const char *const BREAK_TEXTS[] = {"BREAK!", "3 SIPS!", "BREAK!", "STRETCH!", "BREAK!", "20' 20sec"};
 constexpr int BREAK_TEXT_COUNT = 6;
 
 Screen screen = Screen::Boot;
@@ -64,7 +65,7 @@ bool swallowPress = false;  // the press that woke the screen does nothing else
 int menuIndex = 0;
 int pauseIndex = 0;
 int confirmIndex = CONFIRM_NO;
-int downSetMin = COUNTDOWN_DEFAULT;
+int downSetMin = 30;  // from the timings at start-up and RESET
 uint32_t lastDetentAt = 0;
 
 // 64 bits: a session kept for weeks, or a run never stopped, counts past the 49.7 days of 32 bits.
@@ -72,7 +73,6 @@ uint64_t sessionMs = 0;      // focus time this session (up and down), until RES
 uint64_t runMsCount = 0;     // the current run, up or down
 uint32_t downTotalMs = 0;    // length of the current countdown
 uint32_t sinceBreak = 0;     // running time since the last break
-uint32_t notRunningSince = 0;
 Screen breakFrom = Screen::Focus;  // the run a break interrupted
 int breakText = 0;
 uint32_t breakTextAt = 0;
@@ -83,7 +83,7 @@ Settings settings;
 uint32_t unsavedMs = 0;
 uint32_t unreadableTunes = 0;  // bit n: tune n's saved text did not parse at start-up
 
-// Run views: during a run the count shows for COUNT_SHOW_MS, then a view takes its place.
+// Run views: during a run the count shows for its time (timings.h), then a view takes its place.
 uint32_t countUntil = 0;       // the count shows until then
 uint32_t wipeStart = 0;        // the view is being revealed since then (0: not yet)
 uint8_t viewIndex = 0;         // the view of the run on, paused or last
@@ -100,7 +100,7 @@ bool idleEligible(Screen s) {
            s == Screen::ResetConfirm || s == Screen::PowerConfirm;
 }
 
-// The break prompt never goes off (the owner, 2026-11-08); "U GOOD?" does, 35 min after the press that showed it.
+// The break prompt never goes off; "U GOOD?" does, after the Screen off timing from the press that showed it.
 bool offWhenIdle(Screen s) { return idleEligible(s) || s == Screen::BreakCheck; }
 
 void save() {
@@ -108,13 +108,9 @@ void save() {
     unsavedMs = 0;
 }
 
+// A pause or a stop never counts as a break: only ending a break prompt (endBreak) restarts the
+// time to the next one.
 void go(Screen s, uint32_t now) {
-    if (isRunning(screen) && !isRunning(s)) {
-        notRunningSince = now;
-    }
-    if (!isRunning(screen) && isRunning(s) && now - notRunningSince >= PAUSE_COUNTS_AS_BREAK_MS) {
-        sinceBreak = 0;  // a long enough stop was a break
-    }
     screen = s;
     screenSince = now;
 }
@@ -123,7 +119,7 @@ int wrap(int value, int count) { return ((value % count) + count) % count; }
 
 // The count shows for 5 s; a turn or press while it shows starts the 5 s again.
 void showCount(uint32_t now) {
-    countUntil = now + COUNT_SHOW_MS;
+    countUntil = now + timings::ms(timings::CountShows);
     wipeStart = 0;
 }
 
@@ -149,8 +145,7 @@ uint8_t randomViewAfter(uint8_t current) {
     return pick[rp2040.hwrand32() % n];
 }
 
-// The view changes at each run start and at each break (the owner, 2026-11-06), to one drawn at random
-// (the owner, 2026-11-06: "It should be random").
+// The view changes at each run start and at each break, to one drawn at random.
 void nextView() {
     viewIndex = upcomingView;
     upcomingView = randomViewAfter(viewIndex);
@@ -214,7 +209,6 @@ void endBreak(uint32_t now, bool taken) {
     sinceBreak = 0;
     nextView();
     resume(breakFrom, now);
-    sinceBreak = 0;
 }
 
 // Running time: counted here, between two calls to update().
@@ -259,7 +253,8 @@ void onTurn(int detents, uint32_t now) {
             break;
         case Screen::DownSet: {
             int step = fast ? COUNTDOWN_FAST_STEP : 1;
-            downSetMin = constrain(downSetMin + detents * step, COUNTDOWN_MIN, COUNTDOWN_MAX);
+            downSetMin = constrain(downSetMin + detents * step, (int)timings::info(timings::CountdownStart).min,
+                                   (int)timings::info(timings::CountdownStart).max);
             sound::tick();
             break;
         }
@@ -352,7 +347,7 @@ void onShort(uint32_t now) {
                 runMsCount = 0;
                 sinceBreak = 0;
                 sessionBreaks = 0;
-                downSetMin = COUNTDOWN_DEFAULT;
+                downSetMin = timings::get(timings::CountdownStart);
                 go(Screen::Poof, now);
                 sound::play(Tune::Poof);
                 save();
@@ -362,7 +357,7 @@ void onShort(uint32_t now) {
             if (confirmIndex == CONFIRM_NO) {
                 go(Screen::Menu, now);
             } else {
-                sessionMs = 0;  // POWER clears the session's focus time, as RESET does (the owner, 2026-11-08)
+                sessionMs = 0;  // POWER clears the session's focus time, as RESET does
                 go(Screen::SleepMessage, now);
                 sound::play(Tune::Sleep);
                 save();
@@ -414,7 +409,7 @@ void timed(uint32_t now) {
             }
             break;
         case Screen::Done:
-            if (inScreen >= DONE_SCREEN_MS) {
+            if (inScreen >= timings::ms(timings::DoneShows)) {
                 go(Screen::Menu, now);
             }
             break;
@@ -431,12 +426,12 @@ void timed(uint32_t now) {
                 go(Screen::Done, now);
                 sound::play(Tune::Done);
                 save();
-            } else if (sinceBreak >= BREAK_AFTER_MS) {
+            } else if (sinceBreak >= timings::ms(timings::BreakEvery)) {
                 enterBreak(now);
             }
             break;
         case Screen::Focus:
-            if (sinceBreak >= BREAK_AFTER_MS) {
+            if (sinceBreak >= timings::ms(timings::BreakEvery)) {
                 enterBreak(now);
             }
             break;
@@ -445,7 +440,7 @@ void timed(uint32_t now) {
                 breakTextAt = now;
                 breakText = (breakText + 1) % BREAK_TEXT_COUNT;
             }
-            if (now - lastReminder >= BREAK_REMINDER_PERIOD_MS) {
+            if (now - lastReminder >= timings::ms(timings::ReminderEvery)) {
                 lastReminder = now;
                 brightSince = now;  // each reminder brings the screen back to full brightness
                 sound::play(Tune::Break);
@@ -463,9 +458,9 @@ const char *idleText(uint32_t now) {
         return nullptr;
     }
     uint32_t t = idleFor(now);
-    if (t >= IDLE_3_MS) return "IDLE?!?!";
-    if (t >= IDLE_2_MS) return "IDLE?!";
-    if (t >= IDLE_1_MS) return "IDLE?";
+    if (t >= timings::ms(timings::Idle3)) return "IDLE?!?!";
+    if (t >= timings::ms(timings::Idle2)) return "IDLE?!";
+    if (t >= timings::ms(timings::Idle1)) return "IDLE?";
     return nullptr;
 }
 
@@ -473,12 +468,12 @@ bool screenOff(uint32_t now) {
     if (screen == Screen::Sleeping) {
         return true;
     }
-    return offWhenIdle(screen) && idleFor(now) >= IDLE_OFF_MS;
+    return offWhenIdle(screen) && idleFor(now) >= timings::ms(timings::OffAfter);
 }
 
 bool asleepToInput(uint32_t now) { return screen == Screen::Sleeping || screenOff(now) || idleText(now); }
 
-// Whole minutes only, with no unit (the owner, 2026-11-06): "25", "130".
+// Whole minutes only, with no unit: "25", "130".
 void fmtMinutes(char *out, size_t n, uint64_t ms) { snprintf(out, n, "%llu", (unsigned long long)(ms / 60000)); }
 
 void fmtClock(char *out, size_t n, uint64_t ms) {
@@ -497,8 +492,9 @@ views::Input viewInput() {
         in.posMs = runMsCount;
         in.lenMs = downTotalMs;
     } else {
-        in.posMs = sinceBreak < BREAK_AFTER_MS ? sinceBreak : BREAK_AFTER_MS;
-        in.lenMs = BREAK_AFTER_MS;
+        uint32_t breakMs = timings::ms(timings::BreakEvery);
+        in.posMs = sinceBreak < breakMs ? sinceBreak : breakMs;
+        in.lenMs = breakMs;
     }
     in.p = in.lenMs > 0 ? in.posMs / in.lenMs : 0;
     in.breaks = sessionBreaks;
@@ -537,11 +533,9 @@ void addView(Frame &f, uint32_t now) {
 void buildScreen(Frame &f, uint32_t now) {
     memset(&f, 0, sizeof(f));
     char t[24];  // room for any 64-bit time; f.top truncates past its own size
-    // The current run's minutes (the owner, 2026-11-08: "It should be amount of the current run
-    // only"), shown only during runs, on the pause menus (the owner, 2026-11-06) and on the break
-    // prompt and "U GOOD?" (the owner, 2026-11-08: "In the break menu, keep the current focus run's
-    // minutes"). The pause menus put the run's time there instead, except while an idle prompt
-    // shows. Elsewhere the band is empty or holds the screen's title. The storage-fault mark is
+    // The current run's minutes only, shown during runs, on the pause menus and on the break
+    // prompt and "U GOOD?". The pause menus put the run's time there instead, except while an
+    // idle prompt shows. Elsewhere the band is empty or holds the screen's title. The storage-fault mark is
     // added by build().
     bool paused = screen == Screen::FocusPaused || screen == Screen::DownPaused;
     bool onBreak = screen == Screen::Break || screen == Screen::BreakCheck;
@@ -550,7 +544,8 @@ void buildScreen(Frame &f, uint32_t now) {
         snprintf(f.top, sizeof(f.top), "%s", t);
     }
     f.off = screenOff(now);
-    f.dim = !f.off && now - brightSince >= DIM_AFTER_MS;
+    // The break prompt never dims, whatever the timings.
+    f.dim = !f.off && screen != Screen::Break && now - brightSince >= timings::ms(timings::DimAfter);
     const char *idle = idleText(now);
     if (idle) {
         snprintf(f.big, sizeof(f.big), "%s", idle);
@@ -634,7 +629,7 @@ void buildScreen(Frame &f, uint32_t now) {
     }
 }
 
-// The screen, then the storage-fault mark on every screen (the owner, 2026-11-09): "! " before the
+// The screen, then the storage-fault mark on every screen: "! " before the
 // top line's text, whether minutes, a clock or a title, or "!" alone where the top line is empty.
 void build(Frame &f, uint32_t now) {
     buildScreen(f, now);
@@ -655,6 +650,9 @@ namespace app {
 
 void begin(uint32_t now, bool watchdogReset) {
     storage::begin(life, settings);
+    storage::loadTimings();  // the defaults when none are saved or the file is damaged
+    input::setHoldMs(timings::ms(timings::HoldMs));
+    downSetMin = timings::get(timings::CountdownStart);
     sound::setEnabled(settings.soundOn);
     input::setReversed(settings.knobReversed);
     display::setSequentialRows(settings.displaySequentialRows);
@@ -675,7 +673,7 @@ void begin(uint32_t now, bool watchdogReset) {
         life.watchdogResets++;
     }
     save();
-    lastUpdate = lastInput = brightSince = notRunningSince = now;
+    lastUpdate = lastInput = brightSince = now;
     // Bits past the last view are dropped; a record with every view off (none can be saved so)
     // switches them all on.
     settings.viewsOff &= ALL_VIEWS;
@@ -697,7 +695,6 @@ void update(uint32_t now) {
     const uint32_t AGE_CAP = 1UL << 30;
     if (now - lastInput > AGE_CAP) lastInput = now - AGE_CAP;
     if (now - brightSince > AGE_CAP) brightSince = now - AGE_CAP;
-    if (now - notRunningSince > AGE_CAP) notRunningSince = now - AGE_CAP;  // a pause of weeks stays a break
     if (now - lastDetentAt > AGE_CAP) lastDetentAt = now - AGE_CAP;        // a turn after weeks is not "fast"
 
     int detents = input::takeDetents();
@@ -768,7 +765,7 @@ const char *runViewState() {
 const char *screenLevel() {
     uint32_t now = millis();
     if (screenOff(now)) return "off";
-    return now - brightSince >= DIM_AFTER_MS ? "dimmed" : "full";
+    return screen != Screen::Break && now - brightSince >= timings::ms(timings::DimAfter) ? "dimmed" : "full";
 }
 uint32_t sessionBreakCount() { return sessionBreaks; }
 uint64_t sessionFocusMs() { return sessionMs; }
@@ -830,6 +827,22 @@ void setAllViewsOn() {
     settings.viewsOff = 0;
     upcomingView = randomViewAfter(viewIndex);
     save();
+}
+
+bool setTiming(uint8_t id, uint16_t value) {
+    if (id >= timings::COUNT || !timings::set((timings::Id)id, value)) {
+        return false;
+    }
+    if (id == timings::HoldMs) {
+        input::setHoldMs(timings::ms(timings::HoldMs));
+    }
+    return storage::saveTimings();
+}
+
+bool resetTimings() {
+    timings::resetAll();
+    input::setHoldMs(timings::ms(timings::HoldMs));
+    return storage::saveTimings();
 }
 
 void clearLifetime() {

@@ -11,6 +11,7 @@
 // upload loads the program only (its builder offsets to the file system for "uploadfs" alone).
 
 #include "storage.h"
+#include "timings.h"
 
 #include <Arduino.h>
 #include <LittleFS.h>
@@ -30,7 +31,7 @@ struct __attribute__((packed)) Record {
     Lifetime life;
     uint8_t soundOn;
     uint8_t knobReversed;         // was padding (0) in records saved before 2026-11-05
-    uint8_t displaySequentialRows;  // same (written as "standard rows" by build 83ef6e8 only)
+    uint8_t displaySequentialRows;  // same (written as "standard rows" by one earlier build only)
     uint8_t fonts;                // same: big font in the high 4 bits, small font in the low 4
     uint32_t crc;
 };
@@ -163,6 +164,77 @@ bool deleteTune(const char *name) {
     }
     return !LittleFS.exists(path) || LittleFS.remove(path);
 }
+
+namespace {
+
+constexpr const char *TIMINGS_PATH = "/timings.bin";
+constexpr uint32_t TIMINGS_MAGIC = 0x4D495447;  // "GTIM"
+
+struct __attribute__((packed)) TimingsFile {
+    uint32_t magic;
+    uint16_t count;
+    uint16_t values[timings::COUNT];
+    uint32_t crc;
+};
+
+storage::TimingsLoaded timingsState = storage::TimingsLoaded::None;
+bool timingsOk = true;
+
+}  // namespace
+
+TimingsLoaded loadTimings() {
+    timings::resetAll();
+    timingsState = TimingsLoaded::None;
+    if (!mounted || !LittleFS.exists(TIMINGS_PATH)) {
+        return timingsState;
+    }
+    File f = LittleFS.open(TIMINGS_PATH, "r");
+    if (!f) {
+        timingsState = TimingsLoaded::Damaged;
+        return timingsState;
+    }
+    TimingsFile t;
+    size_t n = f.read((uint8_t *)&t, sizeof(t));
+    f.close();
+    if (n != sizeof(t) || t.magic != TIMINGS_MAGIC || t.count != timings::COUNT ||
+        t.crc != crc32((const uint8_t *)&t, offsetof(TimingsFile, crc))) {
+        timingsState = TimingsLoaded::Damaged;
+        return timingsState;
+    }
+    uint16_t values[timings::COUNT];  // copied out of the packed file, so each is aligned
+    memcpy(values, t.values, sizeof(values));
+    timings::setAll(values);
+    // setAll keeps the defaults if any value is out of range or out of order.
+    bool same = true;
+    for (uint8_t i = 0; i < timings::COUNT; i++) {
+        same = same && timings::all()[i] == values[i];
+    }
+    timingsState = same ? TimingsLoaded::Ok : TimingsLoaded::Damaged;
+    return timingsState;
+}
+
+bool saveTimings() {
+    if (!mounted) {
+        timingsOk = false;
+        return false;
+    }
+    TimingsFile t;
+    memset(&t, 0, sizeof(t));
+    t.magic = TIMINGS_MAGIC;
+    t.count = timings::COUNT;
+    for (uint8_t i = 0; i < timings::COUNT; i++) {
+        t.values[i] = timings::all()[i];
+    }
+    t.crc = crc32((const uint8_t *)&t, offsetof(TimingsFile, crc));
+    timingsOk = writeVerified(TIMINGS_PATH, (const uint8_t *)&t, sizeof(t));
+    if (timingsOk) {
+        timingsState = TimingsLoaded::Ok;  // the file now holds the values in use
+    }
+    return timingsOk;
+}
+
+TimingsLoaded timingsLoaded() { return timingsState; }
+bool timingsSaveOk() { return timingsOk; }
 
 bool ok() { return mounted; }
 bool lastSaveOk() { return lastOk; }

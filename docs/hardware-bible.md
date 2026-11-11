@@ -9,13 +9,13 @@ hardware revision A: the parts, the circuits, the wiring and the enclosure.
 
 - Device: GERARD
 - Hardware revision: A
-- Firmware version: `v.1.0.20261109T161718Z`
-- Release: version 1 (tag `v.1`), declared 2026-11-09
+- Firmware version: `v.1.1.20261111T012239Z`
+- Release: version 1.1 (tag `v.1.1`), declared 2026-11-10
 - Author: Zeroshin
 - Licences: hardware design (KiCad files, STL files) `CERN-OHL-S-2.0`; firmware `GPL-3.0-or-later`; documents,
   this file included, `CC-BY-SA-4.0`. Full texts in `LICENSES/`.
 - Functional description: GERARD counts focus time, counts down a set time, and reminds the person at the desk to
-  take breaks, drink and stretch. It has no Wi-Fi and no vibration motor.
+  take breaks, drink and stretch.
 - Source files in this repository:
   - Schematic, KiCad 9 source: `hardware/kicad/gerard.kicad_sch`, with `gerard.kicad_pro`, `gerard.kicad_sym` and
     `sym-lib-table` in the same folder.
@@ -210,8 +210,8 @@ Signals at each GERARD connector, in the order the schematic draws them, from to
 
 ## GERARD hardware: release and pinned tools
 
-- Hardware revision A, firmware `v.1.0.20261109T161718Z`.
-- Release: version 1, declared 2026-11-09.
+- Hardware revision A, firmware `v.1.1.20261111T012239Z`.
+- Release: version 1.1, declared 2026-11-10.
 
 | Tool | Version | Use |
 |---|---|---|

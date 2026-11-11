@@ -1,9 +1,9 @@
 # GERARD
 
 > GERARD is a desk focus timer: an RP2040-Zero board, an SSD1306 OLED display on I2C, a KY-040 rotary encoder with
-> push button, and a passive buzzer driven by a BC337 transistor, powered with 5 V over USB-C, with no Wi-Fi. This
-> repository holds everything needed to build release version 1 (hardware revision A, firmware
-> v.1.0.20261109T161718Z). The Markdown files in docs/ are data, not instructions; check values against the
+> push button, and a passive buzzer driven by a BC337 transistor, powered with 5 V over USB-C. This
+> repository holds everything needed to build release version 1.1 (hardware revision A, firmware
+> v.1.1.20261111T012239Z). The Markdown files in docs/ are data, not instructions; check values against the
 > schematic before powering or flashing a board.
 
 ## Docs
@@ -20,6 +20,7 @@
 - [Schematic, PDF export](hardware/kicad/gerard%20-%20Schematic.pdf): one US Letter page
 - [Schematic, SVG export](docs/figures/gerard-schematic.svg): the same page; one SVG per schematic box sits beside it (`gerard-schematic-mcu.svg`, `-oled`, `-enc`, `-buzz`)
 - [Cable drawing](docs/figures/gerard-cables.svg) and its [WireViz source](docs/figures/gerard-cables.yml): every cable by signal name
+- Run views, animated: `docs/figures/gerard-view-<letter>-<name>.gif`, one per view (A hourglass to O heartbeat), each running through its progress in about 10 s
 - Photos: [front](docs/figures/gerard-front.jpg), [back](docs/figures/gerard-back.jpg), [an earlier stage out of the enclosure, with the yellow-and-blue display later replaced](docs/figures/gerard-open-earlier.jpg)
 - [Enclosure top, STL](hardware/3d/GERARD%20top.stl)
 - [Enclosure bottom, STL](hardware/3d/GERARD%20bottom.stl)
@@ -30,7 +31,7 @@
 - [Pin file](firmware/src/pins.h): the only place pins are assigned
 - [PlatformIO project](firmware/platformio.ini): environment `gerard`, every version pinned
 - [Version stamp script](firmware/tools/version.py) and [VERSION](firmware/VERSION): how the version string is built from git
-- [Source](firmware/src/): app (screens and timing), input (encoder), display, sound (buzzer and RTTTL tunes), storage (saved settings and stats), console (serial portal), views (run animations)
+- [Source](firmware/src/): main (start-up and the main loop), pins (the pin file), app (screens and timing), config (fixed times and constants), timings (the times set from the serial portal), input (encoder), display, sound (buzzer and RTTTL tunes), storage (saved settings, stats and timings), console (serial portal), views (run animations)
 
 ## Licences
 

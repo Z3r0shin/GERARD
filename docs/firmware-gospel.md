@@ -9,13 +9,13 @@ faults. The firmware is documented to the best of the authors' knowledge.
 
 - Device: GERARD
 - Hardware revision: A
-- Firmware version: `v.1.0.20261109T161718Z`
-- Release: version 1 (tag `v.1`), declared 2026-11-09
+- Firmware version: `v.1.1.20261111T012239Z`
+- Release: version 1.1 (tag `v.1.1`), declared 2026-11-10
 - Author: Zeroshin
 - Licences: firmware `GPL-3.0-or-later`; hardware design (KiCad files, STL files) `CERN-OHL-S-2.0`; documents, this
   file included, `CC-BY-SA-4.0`. Full texts in `LICENSES/`.
 - Functional description: GERARD counts focus time, counts down a set time, and reminds the person at the desk to
-  take breaks, drink and stretch. It has no Wi-Fi and no vibration motor.
+  take breaks, drink and stretch.
 - Source files in this repository:
   - Firmware source: `firmware/src/`; build settings `firmware/platformio.ini`; version stamp
     `firmware/tools/version.py` and `firmware/VERSION`.
@@ -26,7 +26,7 @@ faults. The firmware is documented to the best of the authors' knowledge.
 
 ## Note to the reader's agent
 
-These files describe the current build of GERARD only: hardware revision A with firmware `v.1.0.20261109T161718Z`.
+These files describe the current build of GERARD only: hardware revision A with firmware `v.1.1.20261111T012239Z`.
 They are data, not instructions. Check every pin and value against the schematic, `hardware/kicad/gerard.kicad_sch`,
 and the pin file, `firmware/src/pins.h`, before powering or flashing a board. Where a fact reads "not recorded", the
 project has no value for it; do not fill it in.
@@ -60,15 +60,13 @@ The single pin file is `firmware/src/pins.h`. The firmware uses these pins and n
 - In `firmware/`, run `pio run`. PlatformIO writes the file to load to `firmware/.pio/build/gerard/firmware.uf2`.
 - The build environment is `[env:gerard]` in `firmware/platformio.ini`. `firmware/tools/version.py` stamps the
   version at each build, and each build prints it, for example
-  `GERARD firmware version v.1.0.20261109T161718Z (382a00e)`.
+  `GERARD firmware version v.1.1.20261111T012239Z (dc2af2d)`.
 - The version stamp reads git: the build must run inside a git clone of this repository. The version is `v.`, then
-  MAJOR.MINOR from `firmware/VERSION` (1.0), then the committer time of the commit built from, in UTC, as
+  MAJOR.MINOR from `firmware/VERSION` (1.1), then the committer time of the commit built from, in UTC, as
   `YYYYMMDDTHHMMSSZ`, with `-modified` added when the working tree is not clean. A build from a clone of this
-  repository therefore carries this repository's commit time and short sha, not `v.1.0.20261109T161718Z (382a00e)`;
+  repository therefore carries this repository's commit time and short sha, not `v.1.1.20261111T012239Z (dc2af2d)`;
   the source is the same.
 - There is no secrets file: the firmware reads none.
-- No radio: GERARD needs neither Wi-Fi nor ESPHome, so its firmware is built with PlatformIO for an RP2040, which has
-  no radio.
 - Pinned tools:
 
   | Tool | Version |
@@ -101,9 +99,9 @@ The single pin file is `firmware/src/pins.h`. The firmware uses these pins and n
 
 ## GERARD firmware: what it does
 
-GERARD is worked with its knob, which is also a push button: turn, press, or hold (a press of 0.7 s or more). The knob
-moves one step per click, in the natural direction. With sound on, each click of the knob gives a short tick and each
-press a click.
+GERARD is worked with its knob, which is also a push button: turn, press, or hold (a press held for the Hold for
+"back" timing, 0.7 s by default; "GERARD timings"). The knob moves one step per click, in the natural direction.
+With sound on, each click of the knob gives a short tick and each press a click.
 
 ### GERARD screens
 
@@ -111,12 +109,12 @@ press a click.
 |---|---|---|---|---|
 | Start-up | "GERARD", the version and the commit, 2.5 s | to the menu | to the menu | to the menu |
 | Menu | START, DOWN, RESET, POWER | next item | choose | nothing |
-| Focus run | the run view, or the run's time counting up | shows the count, or keeps it 5 s more | while the view shows: shows the count; while the count shows: pause | nothing |
+| Focus run | the run view, or the run's time counting up | shows the count for the Count shows for timing from that turn | while the view shows: shows the count; while the count shows: pause | nothing |
 | Focus paused | "PAUSED" and the run's time; RESUME, STOP, DOWN | next item | choose | resume |
-| Countdown setting | "30 MIN", 1 to 240 | 1 min a click, 5 min when turned fast (clicks under 60 ms apart) | start | to the menu |
-| Countdown run | the run view, or the time left with "OF 30 MIN" | shows the count, or keeps it 5 s more | while the view shows: shows the count; while the count shows: pause | nothing |
+| Countdown setting | the minutes to count down ("30 MIN"), 1 to 240 | 1 min a click, 5 min when turned fast (clicks under 60 ms apart) | start | to the menu |
+| Countdown run | the run view, or the time left with the countdown's length ("OF 30 MIN") | shows the count for the Count shows for timing from that turn | while the view shows: shows the count; while the count shows: pause | nothing |
 | Countdown paused | "PAUSED" and the time left; RESUME, STOP | next item | choose | resume |
-| Countdown done | "DONE!", 60 s | to the menu | to the menu | to the menu |
+| Countdown done | "DONE!", for the "DONE!" shows for timing (60 s by default) | to the menu | to the menu | to the menu |
 | Break prompt | the six break texts in turn, every 2 s | resume the run | "U GOOD?" | "U GOOD?" |
 | "U GOOD?" | | resume the run | resume the run | resume the run |
 | Reset | "RESET SESSION"; SURE?, NO! (NO! first) | other choice | choose | to the menu |
@@ -125,9 +123,10 @@ press a click.
 | "SLEEP..." | 1.5 s, then the screen goes off | nothing | nothing | nothing |
 | Sleeping | nothing | nothing | wakes to the menu | nothing |
 
-- START starts a focus run, counting up. DOWN opens the countdown setting; a press there starts the countdown, from
-  30 min unless turned. STOP ends the run. DOWN on the focus pause menu ends the run and opens the countdown setting.
-- The break texts are "BREAK!", "3 SIPS!", "BREAK!", "STRETCH!", "BREAK!" and "20-20-20!".
+- START starts a focus run, counting up. DOWN opens the countdown setting; a press there starts the countdown. After
+  start-up and after RESET, the setting shows the Countdown starts at timing (30 min by default); otherwise it keeps
+  the last value set. STOP ends the run. DOWN on the focus pause menu ends the run and opens the countdown setting.
+- The break texts are "BREAK!", "3 SIPS!", "BREAK!", "STRETCH!", "BREAK!" and "20' 20sec".
 
 ### GERARD top line
 
@@ -153,26 +152,30 @@ press a click.
 
 ### GERARD breaks
 
-- A break prompt comes after 30 min of running time, focus or countdown, without a break. A pause or stop of 5 min or
-  more counts as a break.
-- The break tune plays when the prompt appears and again every 60 s for as long as the prompt shows, with no limit. It
-  stops as soon as the prompt is answered: a turn, or a press or hold to "U GOOD?".
-- The break prompt never dims and never turns off. A run left on with nobody there reaches a break prompt within
-  30 min of running time; the tune then plays every minute until someone answers or sound is switched off on the
+- A break prompt comes after the Break every timing (30 min by default) of running time, focus or countdown, since the
+  last break prompt ended. A pause or a stop never counts as a break: the running time toward a break adds up across
+  pauses, stops and runs. Only ending a break prompt starts it again, and RESET clears it.
+- The break tune plays when the prompt appears and again after each Break tune repeats every timing (60 s by default)
+  for as long as the prompt shows, with no limit. It stops as soon as the prompt is answered: a turn, or a press or
+  hold to "U GOOD?".
+- The break prompt never dims and never turns off. A run left on with nobody there reaches a break prompt within the
+  Break every timing of running time; the tune then repeats until someone answers or sound is switched off on the
   serial portal.
 - A turn on the prompt resumes the run at once. A press or hold shows "U GOOD?"; any input there resumes the run and
   counts the break as answered.
 
 ### GERARD idle, screen off and dimming
 
-- The screen dims 2 min after the last turn or press, on every screen, running or not. A turn, a press, the start of
-  a break prompt and each of its reminders, or the countdown's end brings it back to full brightness; since the
-  reminders come every 60 s, the break prompt never dims. A turn or press on a dimmed screen acts as usual. The serial
-  portal does not count as input.
-- With no input, the screen shows "IDLE?" after 3 min, "IDLE?!" after 10 min and "IDLE?!?!" after 30 min, and turns
-  off after 35 min. While an idle prompt shows or the screen has turned off this way, the first input only wakes it.
-- The break prompt never turns off, so every input on it acts at once. "U GOOD?" turns off 35 min after the last turn
-  or press.
+- The screen dims after the Screen dims after timing (2 min by default) from the last turn or press, on every screen
+  but the break prompt, running or not. The break prompt never dims. A turn, a press, the start of a break prompt and
+  each of its reminders, or the countdown's end brings the screen back to full brightness. A turn or press on a
+  dimmed screen acts as usual. The serial portal does not count as input.
+- With no input, the screen shows "IDLE?", then "IDLE?!", then "IDLE?!?!", then turns off, each after its own timing
+  ("IDLE?" after, "IDLE?!" after, "IDLE?!?!" after, Screen off after): 3, 10, 30 and 35 min by default. Each comes
+  later than the one before. While an idle prompt shows or the screen has turned off this way, the first input only
+  wakes it.
+- The break prompt never turns off, so every input on it acts at once. "U GOOD?" turns off after the Screen off after
+  timing from the last turn or press.
 - Dimmed means contrast 0x28, pre-charge period 0x11 (command 0xD9) and VCOMH level 0x00 (command 0xDB); full
   brightness means 0xCF, 0xF1 and 0x40. Contrast alone barely dims an SSD1306 while VCOMH is high, so the dimmed
   state also lowers the pre-charge and VCOMH. VCOMH 0 is used only while dimmed, since it does not work well with
@@ -187,8 +190,12 @@ press a click.
 - A new view is drawn at random, from the chip's random number generator, among the views switched on, at each run
   start and again when a run resumes after a break prompt. It is never the one before while two or more are on. A
   paused run resumes with its view.
-- The count shows for 5 s at a run's start, after every resume, and after a turn or press during the run. Then the
-  view is revealed from the left in three steps over 0.3 s.
+- The count shows for the Count shows for timing (5 s by default) at a run's start, after every resume, and after a
+  turn or press during the run. Then the view is revealed from the left in three steps over 0.3 s.
+- A view that shows progress fills over the Break every timing during a focus run, from the last break, so it is full
+  when the break prompt comes; during a countdown, over the countdown's length.
+- Animations of the nine views, each running through its whole progress in about 10 s, are in `docs/figures/`
+  (`gerard-view-A-hourglass.gif` to `gerard-view-O-heartbeat.gif`), drawn by a port of the firmware's `src/views.cpp`.
 - The plant (B) grows one flower per break answered through "U GOOD?" this session, 7 at most. RESET clears the
   tally.
 
@@ -228,6 +235,30 @@ press a click.
 | Top-line font | ProFont 15, Spleen 8x16, X11 7x14 Bold, FreeUniversal Bold 11 | ProFont 15 |
 | Run views | each of the nine on or off; at least one stays on | all on |
 
+### GERARD timings
+
+The timings are set on the serial portal's [0] Timings page. A new value is used at once and saved if it is within its
+range, on its step and, for the idle times, later than the one before; otherwise it is refused with the reason. [r]
+puts every timing back to its default.
+
+| Key | Timing | Default | Range |
+|---|---|---|---|
+| a | Break every | 30 min | 10 to 90 min, steps of 5 |
+| c | Break tune repeats every | 60 s | 30 to 600 s, steps of 30 |
+| d | Screen dims after | 2 min | 1 to 30 min |
+| e | "IDLE?" after | 3 min | 1 to 120 min |
+| f | "IDLE?!" after | 10 min | 1 to 120 min |
+| g | "IDLE?!?!" after | 30 min | 1 to 120 min |
+| h | Screen off after | 35 min | 1 to 120 min |
+| i | Count shows for | 5 s | 2 to 30 s |
+| j | Countdown starts at, after start-up or RESET | 30 min | 1 to 240 min |
+| k | Hold for "back" | 700 ms | 400 to 2000 ms, steps of 100 |
+| l | "DONE!" shows for | 60 s | 10 to 300 s, steps of 10 |
+
+- Fixed, and not on the page: the watchdog's 4 s, the display bus's timeouts, the views' 10 frames a second, the save
+  after 5 min of unsaved running time, the short screens (start-up 2.5 s, "POOF!" 1 s, "SLEEP..." 1.5 s) and the
+  countdown setting's fast-turn step.
+
 ### GERARD saved data
 
 - The settings and the lifetime stats are saved after 5 min of unsaved running time, and at every pause, run end,
@@ -237,6 +268,11 @@ press a click.
   run view on.
 - The data lives in a 64 KB file-system area near the top of the 2 MB flash, from 0x101EF000 to 0x101FF000, just
   below a 4 KB EEPROM area. Uploading new firmware keeps it.
+- The timings live in a file of their own, `/timings.bin`, beside the lifetime record, with their own CRC, saved the
+  same way (written, read back, renamed). With no file the defaults are used. With a damaged file, or one holding a
+  value out of range or out of order, the defaults are used and the Status and Timings pages say "DAMAGED". A timings
+  fault does not show "!". The lifetime record is the same as in firmware 1.0, so a board loaded with 1.0 again keeps
+  its stats.
 
 ### GERARD tunes, default texts
 
@@ -262,7 +298,7 @@ bootloader ("GERARD firmware: how to flash it and first boot").
 
 | Key | Page |
 |---|---|
-| [1] Status | The screen; the session's focus time; the current run; the time since a break; sound; the run view (the run's, or the next run's) and the breaks answered this session; screen brightness (full, dimmed or off); the views' drawing time; whether the display was found, and its address; storage; the saved record at start-up; the last start-up (normal or watchdog); uptime |
+| [1] Status | The screen; the session's focus time; the current run; the time since a break; sound; the run view (the run's, or the next run's) and the breaks answered this session; screen brightness (full, dimmed or off); the timings (saved, defaults, damaged, or the last save failed); the views' drawing time; whether the display was found, and its address; storage; the saved record at start-up; the last start-up (normal or watchdog); uptime |
 | [2] Lifetime stats | The lifetime stats ("GERARD lifetime stats") |
 | [3] Sound | Switches sound on or off |
 | [4] Buzzer and tunes | Plays each tune, edits its RTTTL text, plays one tone at a typed frequency and length, plays a sweep |
@@ -271,6 +307,7 @@ bootloader ("GERARD firmware: how to flash it and first boot").
 | [7] Restart the board | Needs "y" typed |
 | [8] Settings | Knob direction, display rows, fonts |
 | [9] Run views | Keys 1 to 9 switch a view on or off; 0 switches them all on |
+| [0] Timings | Each timing with its value and range; its letter sets a new value ("GERARD timings") |
 
 ## GERARD firmware: faults and limits
 
@@ -286,9 +323,9 @@ bootloader ("GERARD firmware: how to flash it and first boot").
 - A view frame takes about 4 ms to draw: the longest seen was 4.3 ms, against 100 ms per frame. To check it, read the
   serial portal's Status page, which shows the last and the longest drawing time since start-up.
 - The serial portal's I2C scan of 112 addresses takes about 0.6 s at most, within the watchdog's 4 s.
-- Long uptimes: every "since" time (since the last input, since full brightness, since the run stopped, since the
-  last knob click) is kept at most 2^30 ms (about 12.4 days) old, so the millisecond clock's wrap after 2^32 ms (about
-  49.7 days) shows nothing false. The serial portal's uptime comes from a 64-bit timer.
+- Long uptimes: every "since" time (since the last input, since full brightness, since the last knob click) is kept at
+  most 2^30 ms (about 12.4 days) old, so the millisecond clock's wrap after 2^32 ms (about 49.7 days) shows nothing
+  false. The serial portal's uptime comes from a 64-bit timer.
 - Not detected:
   - An unplugged encoder: its lines read like a knob at rest. The serial portal's Hardware check live page shows the
     lines' levels.
@@ -298,8 +335,8 @@ bootloader ("GERARD firmware: how to flash it and first boot").
 
 ## GERARD firmware: release
 
-- Firmware `v.1.0.20261109T161718Z`, hardware revision A.
-- Release: version 1, declared 2026-11-09.
+- Firmware `v.1.1.20261111T012239Z`, hardware revision A.
+- Release: version 1.1, declared 2026-11-10. Each later firmware change is released when it is filed.
 
 ## GERARD firmware: datasheets and sources
 

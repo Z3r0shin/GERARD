@@ -23,7 +23,7 @@ struct Settings {
     bool knobReversed;         // turn the knob the other way round
     bool displaySequentialRows;  // the sequential COM row layout (U8g2's ALT0) instead of the standard one
     uint8_t bigFont;           // index into the large-line fonts
-    uint8_t smallFont;         // index into the yellow-band fonts
+    uint8_t smallFont;         // index into the top-band fonts
     uint16_t viewsOff;         // run views switched off: bit n is view n (views.h); 0 = all on
 };
 
@@ -42,6 +42,19 @@ bool save(const Lifetime &life, const Settings &settings);
 bool loadTune(const char *name, char *out, size_t outLen);
 bool saveTune(const char *name, const char *rtttl);
 bool deleteTune(const char *name);
+
+// The timings changed from the portal (timings.h), in a file of their own. loadTimings gives the
+// saved values to timings::setAll; saveTimings writes them, read back like save(). A failed or
+// damaged timings file shows on the portal; it does not change healthy().
+enum class TimingsLoaded : uint8_t {
+    None,     // none saved: the defaults are in use
+    Ok,       // read at start-up with every value usable, or saved since
+    Damaged,  // a file was there but could not be used: the defaults are in use
+};
+TimingsLoaded loadTimings();
+bool saveTimings();
+TimingsLoaded timingsLoaded();
+bool timingsSaveOk();  // the last timings save worked (true before any)
 
 enum class Loaded : uint8_t {
     Fresh,    // no record yet: a new board, or a new file system

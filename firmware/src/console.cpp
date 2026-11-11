@@ -35,11 +35,12 @@
 #include "input.h"
 #include "sound.h"
 #include "storage.h"
+#include "timings.h"
 #include "views.h"
 
 namespace {
 
-enum class Page : uint8_t { Main, Status, Stats, Buzzer, Tune, Hardware, Watch, Settings, Views };
+enum class Page : uint8_t { Main, Status, Stats, Buzzer, Tune, Hardware, Watch, Settings, Views, Timings };
 
 enum class Ask : uint8_t {
     None,
@@ -48,6 +49,7 @@ enum class Ask : uint8_t {
     Rtttl,   // a new tune
     Erase,   // "yes" to erase the lifetime stats
     Reboot,  // "y" to restart
+    Timing,  // a new value for one timing
 };
 
 constexpr uint16_t SWEEP_FROM_HZ = 1000;
@@ -70,6 +72,7 @@ Ask ask = Ask::None;
 char field[sound::RTTTL_MAX + 1];
 size_t fieldLen = 0;
 long askedHz = 0;
+uint8_t editTiming = 0;  // the timing being typed (Ask::Timing)
 
 // Buzzer page.
 bool pickingTune = false;     // "e" was pressed: the next digit chooses the tune to edit
@@ -176,9 +179,17 @@ void footer(const char *keys) {
         case Ask::Rtttl: put("\r\n New tune (Enter to try it, Esc to cancel):\r\n %s", field); break;
         case Ask::Erase: put("\r\n Type yes and press Enter to erase; anything else keeps them: %s", field); break;
         case Ask::Reboot: put("\r\n Restart the board? [y/n] "); break;
+        case Ask::Timing: {
+            const timings::Info &in = timings::info((timings::Id)editTiming);
+            put("\r\n New value for %s, in %s, %u to %u in steps of %u (Enter to set, Esc to cancel): %s", in.label,
+                in.unit, (unsigned)in.min, (unsigned)in.max, (unsigned)in.step, field);
+            break;
+        }
         case Ask::None: break;
     }
 }
+
+const char *timingsState();  // below, with the Timings page
 
 void drawMain() {
     header(nullptr);
@@ -194,6 +205,7 @@ void drawMain() {
     put(" [7] Restart the board\r\n");
     put(" [8] Settings: knob direction, display rows, fonts\r\n");
     put(" [9] Run views: which animations play during a run\r\n");
+    put(" [0] Timings: breaks, idle, dimming, countdown, hold\r\n");
     footer("Press a key. Enter draws this page again.");
 }
 
@@ -211,6 +223,7 @@ void drawStatus() {
         views::letter(app::runViewIndex()), views::name(app::runViewIndex()), app::runViewState(),
         (unsigned long)app::sessionBreakCount());
     put(" Screen brightness:      %s\r\n", app::screenLevel());
+    put(" Timings:                %s\r\n", timingsState());
     put(" View drawing time:      last frame %lu us, longest since start-up %lu us\r\n",
         (unsigned long)views::lastRenderUs(), (unsigned long)views::maxRenderUs());
     if (display::present()) {
@@ -355,6 +368,30 @@ void drawViews() {
     footer("[b] back");
 }
 
+const char *timingsState() {
+    if (!storage::timingsSaveOk()) return "the last save FAILED";
+    switch (storage::timingsLoaded()) {
+        case storage::TimingsLoaded::Ok: return "saved";
+        case storage::TimingsLoaded::Damaged: return "saved file DAMAGED at start-up: defaults in use until a change is saved";
+        default: return "none saved at start-up: defaults";
+    }
+}
+
+void drawTimings() {
+    header("TIMINGS (each change is used at once and saved)");
+    for (uint8_t i = 0; i < timings::COUNT; i++) {
+        const timings::Info &in = timings::info((timings::Id)i);
+        uint16_t v = timings::get((timings::Id)i);
+        put(" [%c] %-26s %4u %-3s  (%u to %u, steps of %u%s)\r\n", in.key, in.label, (unsigned)v, in.unit,
+            (unsigned)in.min, (unsigned)in.max, (unsigned)in.step, v == in.def ? "" : "; changed");
+    }
+    put("\r\n The idle times go in order: IDLE?, then IDLE?!, then IDLE?!?!, then the screen off.\r\n");
+    put(" A pause or a stop never counts as a break; the break prompt never dims and never goes off.\r\n");
+    put(" Countdown starts at: the countdown setting's value after a start-up or RESET.\r\n");
+    put(" Saved timings: %s.\r\n", timingsState());
+    footer("A letter changes that timing.   [r] every timing back to its default   [b] back");
+}
+
 void draw() {
     switch (page) {
         case Page::Main: drawMain(); break;
@@ -366,6 +403,7 @@ void draw() {
         case Page::Watch: drawWatch(); break;
         case Page::Settings: drawSettings(); break;
         case Page::Views: drawViews(); break;
+        case Page::Timings: drawTimings(); break;
     }
     dirty = false;
 }
@@ -436,6 +474,24 @@ void submit() {
                 snprintf(candidate, sizeof(candidate), "%s", field);
                 sound::playRtttlTest(candidate);
                 say("Playing the new tune. [k] keeps it, [y] plays it again, [n] types another.");
+            }
+            break;
+        }
+        case Ask::Timing: {
+            const timings::Info &in = timings::info((timings::Id)editTiming);
+            long v = 0;
+            const char *why = nullptr;
+            if (!parseNumber(field, 0, 65535, v)) {
+                why = "not a whole number";
+            } else {
+                why = timings::check((timings::Id)editTiming, v);
+            }
+            if (why) {
+                say("\"%s\" not used for %s: %s. Nothing changed.", field, in.label, why);
+            } else if (app::setTiming(editTiming, (uint16_t)v)) {
+                say("%s: %ld %s.", in.label, v, in.unit);
+            } else {
+                say("%s: %ld %s, in use, but the save FAILED.", in.label, v, in.unit);
             }
             break;
         }
@@ -519,9 +575,13 @@ void onKey(int ch, uint32_t now) {
                     say("Erase every lifetime stat? This cannot be undone.");
                     startAsk(Ask::Erase);
                     break;
-                case '7': startAsk(Ask::Reboot); break;
+                case '7':
+                    message[0] = ' ';  // the last result is not about the restart
+                    startAsk(Ask::Reboot);
+                    break;
                 case '8': go(Page::Settings); break;
                 case '9': go(Page::Views); break;
+                case '0': go(Page::Timings); break;
                 default: break;
             }
             break;
@@ -642,6 +702,26 @@ void onKey(int ch, uint32_t now) {
             } else if (ch == '4') {
                 app::setSmallFont((uint8_t)((display::smallFont() + 1) % display::smallFontCount()));
                 say("Top-line font: %s.", display::smallFontName(display::smallFont()));
+            } else if (isBack(ch)) {
+                go(Page::Main);
+            }
+            break;
+        }
+        case Page::Timings: {
+            bool found = false;
+            for (uint8_t i = 0; i < timings::COUNT; i++) {
+                if (ch == timings::info((timings::Id)i).key) {
+                    editTiming = i;
+                    message[0] = '\0';  // the last result is not about this one
+                    startAsk(Ask::Timing);
+                    found = true;
+                }
+            }
+            if (found) {
+                break;
+            }
+            if (ch == 'r' || ch == 'R') {
+                say(app::resetTimings() ? "Every timing is back to its default." : "Back to the defaults, but the save FAILED.");
             } else if (isBack(ch)) {
                 go(Page::Main);
             }

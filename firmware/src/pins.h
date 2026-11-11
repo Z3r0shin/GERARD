@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // GERARD hardware revision A: the single pin file.
 // Every microcontroller pin the firmware uses is assigned here and nowhere else.
-// Signal names and pads match the Hardware Bible's rev A unit and its schematic (body/kicad/gerard.kicad_sch).
+// Signal names and pads match the Hardware Bible and the schematic (hardware/kicad/gerard.kicad_sch).
 // "GPn" is the RP2040-Zero pad printed GPn, which is the RP2040's GPIO n.
 #pragma once
 

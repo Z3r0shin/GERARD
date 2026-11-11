@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // GERARD firmware: the run views, the animations shown in place of the count during a run.
 //
-// Nine views, ported from the owner's mockup (gerard-run-views.html, 2026-11-06). Each draws only
+// Nine views. Each draws only
 // in rows 16 to 63, into its own buffer laid out as the display's pages 2 to 7; the display
 // copies it over the count.
 #pragma once
@@ -14,10 +14,10 @@ constexpr uint8_t COUNT = 9;  // A hourglass, B plant, E coffee pot, F train, I 
                               // K fishing, N Newton's cradle, O heartbeat
 
 struct Input {
-    double p;          // progress, 0 to 1: focus run, time since the last break / 30 min;
+    double p;          // progress, 0 to 1: focus run, time since the last break / the break time;
                        // countdown run, elapsed / length
     double posMs;      // focus run: time since the last break; countdown run: elapsed time
-    double lenMs;      // focus run: 30 min; countdown run: its length
+    double lenMs;      // focus run: the break time (a timing, timings.h); countdown run: its length
     uint32_t breaks;   // breaks answered this session (the plant's flowers)
 };
 
