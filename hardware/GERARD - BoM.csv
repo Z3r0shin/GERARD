@@ -1,0 +1,20 @@
+Qty,Ref,Part,Note
+1,U1,"RP2040-Zero microcontroller board (USB-C)",
+1,U2,"0.96"" SSD1306 OLED module, 128 x 64, I2C, white",
+1,U3,"KY-040 rotary encoder module with push button",
+1,BZ1,"Passive magnetic buzzer, about 16 ohm coil",
+1,Q1,"BC337 NPN transistor",
+1,D1,"1N5819 Schottky diode",
+1,R1,"100 ohm resistor, 0.25 W or more",
+1,R2,"1 kohm resistor",
+1,R3,"10 kohm resistor",
+1,J1 + J2,"JST XH 4-pin header and housing",Display cable
+1,J5 + J6,"JST XH 5-pin header and housing",Encoder cable
+9,,"JST XH crimp terminals",One per housing pin
+1,J9,"USB-C female breakout board, 4 pins (VCC, D-, D+, GND)",On the enclosure
+1,P1,"USB-C male plug on a small solder board",Plugs into U1's USB-C socket
+1,,"Perfboard",Carries U1 and the buzzer driver
+,,"Hookup wire",Module cables and USB-C extension
+1,,"Printed enclosure, top and bottom (PLA)",GERARD top.stl and GERARD bottom.stl
+1,,"Printed knob (PLA)",Knob FINAL.stl
+,,"Hot glue",Holds J9 and the perfboard

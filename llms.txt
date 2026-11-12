@@ -22,6 +22,7 @@
 - [Cable drawing](docs/figures/gerard-cables.svg) and its [WireViz source](docs/figures/gerard-cables.yml): every cable by signal name
 - Run views, animated: `docs/figures/gerard-view-<letter>-<name>.gif`, one per view (A hourglass to O heartbeat), each running through its progress in about 10 s
 - Photos: [front](docs/figures/gerard-front.jpg), [back](docs/figures/gerard-back.jpg), [an earlier stage out of the enclosure, with the yellow-and-blue display later replaced](docs/figures/gerard-open-earlier.jpg)
+- [Bill of materials, CSV](hardware/GERARD%20-%20BoM.csv): quantity, reference, part and note for every part to buy or print
 - [Enclosure top, STL](hardware/3d/GERARD%20top.stl)
 - [Enclosure bottom, STL](hardware/3d/GERARD%20bottom.stl)
 - [Knob, STL](hardware/3d/Knob%20FINAL.stl)

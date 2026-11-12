@@ -20,6 +20,7 @@ hardware revision A: the parts, the circuits, the wiring and the enclosure.
   - Schematic, KiCad 9 source: `hardware/kicad/gerard.kicad_sch`, with `gerard.kicad_pro`, `gerard.kicad_sym` and
     `sym-lib-table` in the same folder.
   - Schematic, PDF export: `hardware/kicad/gerard - Schematic.pdf`.
+  - Bill of materials, CSV: `hardware/GERARD - BoM.csv`.
   - Enclosure, STL: `hardware/3d/GERARD top.stl` and `hardware/3d/GERARD bottom.stl`.
   - Knob, STL: `hardware/3d/Knob FINAL.stl`.
   - Firmware source: `firmware/` (described in `docs/firmware-gospel.md`).

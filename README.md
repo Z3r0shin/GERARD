@@ -54,7 +54,8 @@ Each one runs through a whole stretch to a break in about 10 seconds here; on GE
 ## Build it
 
 1. Read the [Hardware Bible (PDF)](docs/GERARD%20-%20Hardware%20Bible.pdf): parts, circuits, wiring and enclosure.
-2. Gather the parts in its parts table, also in [`docs/hardware-bible.md`](docs/hardware-bible.md).
+2. Gather the parts in the [bill of materials](hardware/GERARD%20-%20BoM.csv); values and ratings are in the
+   Hardware Bible's parts table, also in [`docs/hardware-bible.md`](docs/hardware-bible.md).
 3. Build the perfboard from the [schematic](hardware/kicad/gerard%20-%20Schematic.pdf).
 4. Make the cables from the [cable drawing](docs/figures/gerard-cables.svg).
 5. Print the [enclosure and knob](hardware/3d/).
